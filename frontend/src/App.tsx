@@ -58,13 +58,6 @@ export default function App() {
             {mode === 'upload' ? (
               <ImageUpload onFileReady={handleAnalyze} />
             ) : null}
-
-            {mode === null ? (
-              <div className="rounded-3xl border border-stone-200 bg-white/70 p-6 text-sm text-stone-600 shadow-sm">
-                Pick a flow above to start. This scaffold keeps everything on
-                one page so it is easy to extend during a hackathon.
-              </div>
-            ) : null}
           </div>
 
           <div className="space-y-6">
