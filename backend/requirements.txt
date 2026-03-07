@@ -2,5 +2,4 @@ fastapi==0.115.6
 uvicorn==0.32.1
 python-multipart==0.0.17
 pydantic-settings==2.7.0
-# Add later when you wire the real model:
-# ultralytics
+google-genai>=1.0.0

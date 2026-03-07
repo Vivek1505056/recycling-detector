@@ -2,10 +2,12 @@ from fastapi import APIRouter, File, HTTPException, UploadFile
 
 from app.core.config import settings
 from app.schemas.detection import APIResponse
+from app.services.gemini_service import GeminiService
 from app.services.inference_service import InferenceService
 
 router = APIRouter()
 inference_service = InferenceService(model_path=settings.yolo_model_path or None)
+gemini_service = GeminiService(api_key=settings.gemini_api_key)
 
 
 @router.post("/detect", response_model=APIResponse)
@@ -18,18 +20,18 @@ async def detect_item(file: UploadFile = File(...)) -> APIResponse:
     if not image_bytes:
         raise HTTPException(status_code=400, detail="Uploaded image is empty.")
 
-    # TODO: Call your real YOLOv8 wrapper/service here once available.
-    result = await inference_service.analyze_image(
+    # Use Gemini vision API for image analysis
+    gemini_result = await gemini_service.analyze_image(
         image_bytes=image_bytes,
-        filename=file.filename or "upload.jpg",
+        mime_type=file.content_type or "image/jpeg",
     )
 
     return APIResponse(
         success=True,
         result={
-            "label": result.label,
-            "confidence": result.confidence,
-            "is_recyclable": result.is_recyclable,
-            "explanation": result.explanation,
+            "label": gemini_result["label"],
+            "confidence": gemini_result["confidence"],
+            "is_recyclable": gemini_result["is_recyclable"],
+            "explanation": gemini_result["explanation"],
         },
     )
