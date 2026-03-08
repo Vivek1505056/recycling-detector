@@ -48,7 +48,12 @@ export default function App() {
   return (
     <main className="min-h-screen px-4 py-10 text-brand-ink sm:px-6 lg:px-8">
       <div className="mx-auto flex max-w-6xl flex-col gap-8">
-        <HomeIntro onSelectMode={setMode} />
+        <HomeIntro onSelectMode={(m) => {
+          setMode(m);
+          setPreviewUrl(null);
+          setResult(null);
+          setError(null);
+        }} />
 
         <section className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
           <div className="space-y-6">
@@ -61,7 +66,7 @@ export default function App() {
             ) : null}
             
             {mode === 'stream' ? (
-              <VideoStream />
+              <VideoStream onResult={setResult} />
             ) : null}
           </div>
 
@@ -81,7 +86,11 @@ export default function App() {
             ) : null}
 
             {result ? (
-              <DetectionResultCard onRetry={handleReset} result={result} />
+              <DetectionResultCard 
+                onRetry={handleReset} 
+                result={result} 
+                hideRetry={mode === 'stream'}
+              />
             ) : null}
           </div>
         </section>

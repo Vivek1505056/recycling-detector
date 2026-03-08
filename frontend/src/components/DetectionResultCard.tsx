@@ -3,11 +3,13 @@ import type { APIResponse } from '../types/api';
 type DetectionResultCardProps = {
   result: APIResponse['result'];
   onRetry: () => void;
+  hideRetry?: boolean;
 };
 
 export function DetectionResultCard({
   result,
   onRetry,
+  hideRetry = false,
 }: DetectionResultCardProps) {
   return (
     <section className="rounded-3xl border border-stone-200 bg-white/90 p-6 shadow-sm">
@@ -50,13 +52,15 @@ export function DetectionResultCard({
         </div>
       </div>
 
-      <button
-        className="mt-6 rounded-full border border-brand-ink px-5 py-3 text-sm font-medium text-brand-ink transition hover:bg-brand-cream"
-        onClick={onRetry}
-        type="button"
-      >
-        Retry
-      </button>
+      {!hideRetry ? (
+        <button
+          className="mt-6 rounded-full border border-brand-ink px-5 py-3 text-sm font-medium text-brand-ink transition hover:bg-brand-cream"
+          onClick={onRetry}
+          type="button"
+        >
+          Retry
+        </button>
+      ) : null}
     </section>
   );
 }
