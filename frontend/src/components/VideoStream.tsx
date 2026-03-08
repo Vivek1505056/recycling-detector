@@ -20,7 +20,12 @@ export function VideoStream({ onResult }: VideoStreamProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
+  const onResultRef = useRef(onResult);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    onResultRef.current = onResult;
+  }, [onResult]);
 
   useEffect(() => {
     let active = true;
@@ -44,7 +49,8 @@ export function VideoStream({ onResult }: VideoStreamProps) {
     startCamera();
 
     // Setup WebSocket
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+    const apiUrl =
+      import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
     const wsUrl = apiUrl.replace('http://', 'ws://').replace('https://', 'wss://') + '/api/stream/detect';
     
     wsRef.current = new WebSocket(wsUrl);
@@ -72,14 +78,14 @@ export function VideoStream({ onResult }: VideoStreamProps) {
           
           if (data.detections && data.detections.length > 0) {
             const det = data.detections[0];
-            onResult({
+            onResultRef.current({
               label: det.label,
               confidence: det.confidence,
               is_recyclable: det.is_recyclable,
-              explanation: det.explanation
+              explanation: det.explanation ?? 'Live stream detection result.',
             });
           } else {
-            onResult(null);
+            onResultRef.current(null);
           }
         }
       } catch (err) {
@@ -164,7 +170,7 @@ export function VideoStream({ onResult }: VideoStreamProps) {
       if (wsRef.current) {
         wsRef.current.close();
       }
-      onResult(null);
+      onResultRef.current(null);
     };
   }, []);
 
