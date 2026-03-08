@@ -38,13 +38,25 @@ class InferenceService:
         else:
             self.model = None
 
-    def _determine_recyclable(self, label: str) -> bool:
-        recyclable_keywords = ["plastic", "paper", "cardboard", "can", "glass", "bottle", "metal"]
-        garbage_keywords = ["garbage", "trash", "waste"]
+    def _get_material_info(self, label: str) -> tuple[bool, str]:
         label_lower = label.lower()
-        if any(k in label_lower for k in garbage_keywords):
-            return False
-        return any(k in label_lower for k in recyclable_keywords)
+        
+        # Hardcoded feedback logic
+        if any(k in label_lower for k in ["plastic", "bottle"]):
+            return True, "Plastics (like bottles and jugs) are generally recyclable. Please ensure they are empty, clean, and dry before placing them in the bin."
+        if any(k in label_lower for k in ["paper", "cardboard"]):
+            return True, "Paper and cardboard are highly recyclable. Make sure cardboard is flattened and free of heavy food residue (like greasy pizza boxes)."
+        if any(k in label_lower for k in ["metal", "can"]):
+            return True, "Metal cans (aluminum and tin) are infinitely recyclable! Just give them a quick rinse."
+        if "glass" in label_lower:
+            return True, "Glass bottles and jars are commonly accepted. Please remove any non-glass lids and rinse them out."
+        
+        # Default fallback for garbage/unknowns
+        return False, f"This item ({label}) is not recognized as a standard recyclable material. When in doubt, throw it out to prevent bin contamination."
+
+    def _determine_recyclable(self, label: str) -> bool:
+        is_recyclable, _ = self._get_material_info(label)
+        return is_recyclable
 
     def _focus_region(self, width: int, height: int) -> tuple[float, float, float, float]:
         margin_x = width * (1 - self.focus_box_ratio) / 2
@@ -137,14 +149,13 @@ class InferenceService:
         conf = float(best_box.conf[0])
         label = self.model.names[cls]
         
-        is_recyclable = self._determine_recyclable(label)
+        is_recyclable, explanation = self._get_material_info(label)
         
         return InferenceOutput(
             label=label,
             confidence=conf,
             is_recyclable=is_recyclable,
-            explanation=f"Detected {label} with {conf*100:.1f}% confidence. "
-                        f"Considered {'recyclable' if is_recyclable else 'garbage'}."
+            explanation=explanation
         )
 
     def predict_frame(self, image_bytes: bytes) -> list[dict]:
@@ -183,11 +194,14 @@ class InferenceService:
             conf = float(box.conf[0])
             label = self.model.names[cls]
             
+            is_recyclable, explanation = self._get_material_info(label)
+            
             detections.append({
                 "x1": x1, "y1": y1, "x2": x2, "y2": y2,
                 "label": label,
                 "confidence": conf,
-                "is_recyclable": self._determine_recyclable(label)
+                "is_recyclable": is_recyclable,
+                "explanation": explanation
             })
             
         return detections
