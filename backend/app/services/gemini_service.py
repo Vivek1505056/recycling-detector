@@ -23,9 +23,32 @@ class GeminiService:
 
     async def analyze_image(self, image_bytes: bytes, mime_type: str = "image/jpeg") -> dict:
         """Send an image to Gemini and get a recycling analysis."""
-        PROMPT = """Look at this image and describe the object. If it is recyclable, briefly explain why, if it is not, then explain why it is not recyclable.
-                    Respond with ONLY a valid JSON object — no markdown fences, no extra text, no explanation outside the JSON. Use this exact format:
-                    {"label": "<short item name>", "confidence": <number 0.0 to 1.0>, "is_recyclable": <true or false>, "explanation": "<one sentence describing the item and its material, then one sentence on whether and how to recycle it>"}"""
+        PROMPT = """You are an expert in waste sorting and recycling systems.
+
+Analyze the object in the provided image and determine whether it is recyclable in a typical North American municipal recycling system.
+
+Consider the following factors carefully:
+- Material type (plastic, glass, paper, metal, mixed materials)
+- Whether the item appears contaminated (food residue, liquids, grease, dirt)
+- Whether the item is made from multiple materials that are difficult to separate
+- Common recycling rules for household recycling bins
+
+Respond in JSON format with the following fields:
+
+{
+  "object_label": "name of the object",
+  "material": "estimated primary material",
+  "recyclable": true or false,
+  "confidence": number between 0 and 1,
+  "contamination_detected": true or false,
+  "reason": "short explanation of why the item is or is not recyclable",
+  "recycling_advice": "what the user should do with the item (rinse, trash, special drop-off, etc)"
+}
+
+Important guidelines:
+- If the item is recyclable but contaminated, mark recyclable as false and explain that it must be cleaned.
+- If uncertain, choose the most likely classification and explain.
+- Keep explanations short and practical for users."}"""
         
         response = self.client.models.generate_content(
             model="gemini-3-flash-preview",
