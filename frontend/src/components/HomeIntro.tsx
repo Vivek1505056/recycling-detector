@@ -1,5 +1,5 @@
 type HomeIntroProps = {
-  onSelectMode: (mode: 'camera' | 'upload') => void;
+  onSelectMode: (mode: 'camera' | 'upload' | 'stream') => void;
 };
 
 export function HomeIntro({ onSelectMode }: HomeIntroProps) {
@@ -16,13 +16,20 @@ export function HomeIntro({ onSelectMode }: HomeIntroProps) {
           Upload an image or use your camera to check whether an item is recyclable, compostable, or landfill. 
           Let's make recycling smarter and easier together!
         </p>
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row flex-wrap">
+          <button
+            className="rounded-full bg-brand-moss px-5 py-3 text-sm font-medium text-white transition hover:opacity-90"
+            onClick={() => onSelectMode('stream')}
+            type="button"
+          >
+            Real-time Stream
+          </button>
           <button
             className="rounded-full bg-brand-ink px-5 py-3 text-sm font-medium text-white transition hover:opacity-90"
             onClick={() => onSelectMode('camera')}
             type="button"
           >
-            Use Camera
+            Snapshot Camera
           </button>
           <button
             className="rounded-full border border-brand-ink px-5 py-3 text-sm font-medium text-brand-ink transition hover:bg-brand-cream"

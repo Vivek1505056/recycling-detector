@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes.detect import router as detect_router
+from app.api.routes.stream import router as stream_router
 from app.core.config import settings
 
 app = FastAPI(title=settings.app_name)
@@ -15,6 +16,7 @@ app.add_middleware(
 )
 
 app.include_router(detect_router, prefix="/api", tags=["detection"])
+app.include_router(stream_router, prefix="/api/stream", tags=["stream"])
 
 
 @app.get("/health")

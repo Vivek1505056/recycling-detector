@@ -4,10 +4,11 @@ import { DetectionResultCard } from './components/DetectionResultCard';
 import { HomeIntro } from './components/HomeIntro';
 import { ImagePreview } from './components/ImagePreview';
 import { ImageUpload } from './components/ImageUpload';
+import { VideoStream } from './components/VideoStream';
 import { detectImage } from './lib/api';
 import type { APIResponse } from './types/api';
 
-type InputMode = 'camera' | 'upload' | null;
+type InputMode = 'camera' | 'upload' | 'stream' | null;
 
 export default function App() {
   const [mode, setMode] = useState<InputMode>(null);
@@ -58,10 +59,14 @@ export default function App() {
             {mode === 'upload' ? (
               <ImageUpload onFileReady={handleAnalyze} />
             ) : null}
+            
+            {mode === 'stream' ? (
+              <VideoStream />
+            ) : null}
           </div>
 
           <div className="space-y-6">
-            {previewUrl ? <ImagePreview src={previewUrl} /> : null}
+            {previewUrl && mode !== 'stream' ? <ImagePreview src={previewUrl} /> : null}
 
             {isLoading ? (
               <div className="rounded-3xl border border-stone-200 bg-white/80 p-6 text-sm text-stone-600 shadow-sm">
