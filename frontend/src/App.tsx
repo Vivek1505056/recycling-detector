@@ -1,16 +1,20 @@
 import { useState } from 'react';
 import { CameraCapture } from './components/CameraCapture';
 import { DetectionResultCard } from './components/DetectionResultCard';
+import { HomeHero } from './components/HomeHero';
 import { HomeIntro } from './components/HomeIntro';
 import { ImagePreview } from './components/ImagePreview';
 import { ImageUpload } from './components/ImageUpload';
+import { Navbar } from './components/Navbar';
 import { VideoStream } from './components/VideoStream';
 import { detectImage } from './lib/api';
 import type { APIResponse } from './types/api';
 
 type InputMode = 'camera' | 'upload' | 'stream' | null;
+type Page = 'home' | 'detector';
 
 export default function App() {
+  const [page, setPage] = useState<Page>('home');
   const [mode, setMode] = useState<InputMode>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [result, setResult] = useState<APIResponse['result'] | null>(null);
@@ -45,55 +49,69 @@ export default function App() {
     setIsLoading(false);
   }
 
+  function handleNavigate(nextPage: Page) {
+    setPage(nextPage);
+    if (nextPage === 'home') {
+      handleReset();
+    }
+  }
+
+  function handleOpenDetector(nextMode?: Exclude<InputMode, null>) {
+    setPage('detector');
+    if (nextMode) {
+      setMode(nextMode);
+    }
+  }
+
   return (
     <main className="min-h-screen px-4 py-10 text-brand-ink sm:px-6 lg:px-8">
       <div className="mx-auto flex max-w-6xl flex-col gap-8">
-        <HomeIntro onSelectMode={(m) => {
-          setMode(m);
-          setPreviewUrl(null);
-          setResult(null);
-          setError(null);
-        }} />
+        <Navbar currentPage={page} onNavigate={handleNavigate} />
+        {page === 'home' ? (
+          <HomeHero onOpenDetector={() => handleOpenDetector()} />
+        ) : null}
 
-        <section className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-          <div className="space-y-6">
-            {mode === 'camera' ? (
-              <CameraCapture onCapture={handleAnalyze} />
-            ) : null}
+        {page === 'detector' ? (
+          <>
+            <HomeIntro onSelectMode={handleOpenDetector} />
 
-            {mode === 'upload' ? (
-              <ImageUpload onFileReady={handleAnalyze} />
-            ) : null}
-            
-            {mode === 'stream' ? (
-              <VideoStream onResult={setResult} />
-            ) : null}
-          </div>
+            <section className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+              <div className="space-y-6">
+                {mode === 'camera' ? (
+                  <CameraCapture onCapture={handleAnalyze} />
+                ) : null}
 
-          <div className="space-y-6">
-            {previewUrl && mode !== 'stream' ? <ImagePreview src={previewUrl} /> : null}
-
-            {isLoading ? (
-              <div className="rounded-3xl border border-stone-200 bg-white/80 p-6 text-sm text-stone-600 shadow-sm">
-                Sending image to backend...
+                {mode === 'upload' ? (
+                  <ImageUpload onFileReady={handleAnalyze} />
+                ) : null}
+                
+                {mode === 'stream' ? (
+                  <VideoStream />
+                ) : null}
               </div>
-            ) : null}
 
-            {error ? (
-              <div className="rounded-3xl border border-rose-200 bg-rose-50 p-6 text-sm text-rose-700 shadow-sm">
-                {error}
+              <div className="space-y-6">
+                {previewUrl && mode !== 'stream' ? <ImagePreview src={previewUrl} /> : null}
+
+                {isLoading ? (
+                  <div className="rounded-3xl border border-stone-200 bg-white/80 p-6 text-sm text-stone-600 shadow-sm">
+                    Sending image to backend...
+                  </div>
+                ) : null}
+
+                {error ? (
+                  <div className="rounded-3xl border border-rose-200 bg-rose-50 p-6 text-sm text-rose-700 shadow-sm">
+                    {error}
+                  </div>
+                ) : null}
+
+                {result ? (
+                  <DetectionResultCard onRetry={handleReset} result={result} />
+                ) : null}
               </div>
-            ) : null}
-
-            {result ? (
-              <DetectionResultCard 
-                onRetry={handleReset} 
-                result={result} 
-                hideRetry={mode === 'stream'}
-              />
-            ) : null}
-          </div>
-        </section>
+            </section>
+          </>
+        ) : null}
       </div>
     </main>
   );
