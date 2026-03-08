@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
+import type { APIResponse } from '../types/api';
 type Detection = {
   x1: number;
   y1: number;
@@ -8,9 +9,14 @@ type Detection = {
   label: string;
   confidence: number;
   is_recyclable: boolean;
+  explanation: string;
 };
 
-export function VideoStream() {
+type VideoStreamProps = {
+  onResult: (result: APIResponse['result'] | null) => void;
+};
+
+export function VideoStream({ onResult }: VideoStreamProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
@@ -63,6 +69,18 @@ export function VideoStream() {
         const data = JSON.parse(event.data);
         if (data.success && canvasRef.current && videoRef.current) {
           drawDetections(data.detections);
+          
+          if (data.detections && data.detections.length > 0) {
+            const det = data.detections[0];
+            onResult({
+              label: det.label,
+              confidence: det.confidence,
+              is_recyclable: det.is_recyclable,
+              explanation: det.explanation
+            });
+          } else {
+            onResult(null);
+          }
         }
       } catch (err) {
         console.error('Error parsing detections', err);
@@ -146,6 +164,7 @@ export function VideoStream() {
       if (wsRef.current) {
         wsRef.current.close();
       }
+      onResult(null);
     };
   }, []);
 

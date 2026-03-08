@@ -36,12 +36,12 @@ Consider the following factors carefully:
 Respond in JSON format with the following fields:
 
 {
-  "object_label": "name of the object",
+  "label": "name of the object",
   "material": "estimated primary material",
-  "recyclable": true or false,
+  "is_recyclable": true or false,
   "confidence": number between 0 and 1,
   "contamination_detected": true or false,
-  "reason": "short explanation of why the item is or is not recyclable",
+  "explanation": "short explanation of why the item is or is not recyclable",
   "recycling_advice": "what the user should do with the item (rinse, trash, special drop-off, etc)"
 }
 
