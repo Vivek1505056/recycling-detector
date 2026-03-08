@@ -93,6 +93,11 @@ class InferenceService:
             if confidence < min_confidence:
                 continue
 
+            cls = int(box.cls[0])
+            label = self.model.names[cls]
+            if label.lower() == "cup":
+                continue
+
             score = self._score_box(box, width, height)
             if score is None:
                 continue

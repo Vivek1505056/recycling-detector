@@ -21,6 +21,7 @@ export function VideoStream({ onResult }: VideoStreamProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const onResultRef = useRef(onResult);
+  const clearDetectionTimeoutRef = useRef<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -77,6 +78,11 @@ export function VideoStream({ onResult }: VideoStreamProps) {
           drawDetections(data.detections);
           
           if (data.detections && data.detections.length > 0) {
+            if (clearDetectionTimeoutRef.current) {
+              window.clearTimeout(clearDetectionTimeoutRef.current);
+              clearDetectionTimeoutRef.current = null;
+            }
+
             const det = data.detections[0];
             onResultRef.current({
               label: det.label,
@@ -85,7 +91,12 @@ export function VideoStream({ onResult }: VideoStreamProps) {
               explanation: det.explanation ?? 'Live stream detection result.',
             });
           } else {
-            onResultRef.current(null);
+            if (!clearDetectionTimeoutRef.current) {
+              clearDetectionTimeoutRef.current = window.setTimeout(() => {
+                onResultRef.current(null);
+                clearDetectionTimeoutRef.current = null;
+              }, 1500);
+            }
           }
         }
       } catch (err) {
@@ -164,6 +175,9 @@ export function VideoStream({ onResult }: VideoStreamProps) {
     return () => {
       active = false;
       cancelAnimationFrame(animationFrameId);
+      if (clearDetectionTimeoutRef.current) {
+        window.clearTimeout(clearDetectionTimeoutRef.current);
+      }
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
